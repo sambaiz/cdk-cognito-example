@@ -1,6 +1,6 @@
 import * as path from 'path'
 import * as cdk from '@aws-cdk/core';
-import { UserPool, UserPoolIdentityProviderGoogle, UserPoolClientIdentityProvider, UserPoolClient, ProviderAttribute } from '@aws-cdk/aws-cognito'
+import { UserPool, UserPoolIdentityProviderGoogle, UserPoolClientIdentityProvider, UserPoolClient, ProviderAttribute, AuthFlow } from '@aws-cdk/aws-cognito'
 import { Secret } from '@aws-cdk/aws-secretsmanager';
 import { Function, Runtime, Code } from '@aws-cdk/aws-lambda'
 
@@ -91,7 +91,10 @@ export class CognitoStack extends cdk.Stack {
       supportedIdentityProviders: [UserPoolClientIdentityProvider.GOOGLE],
       generateSecret: true,
       oAuth: {
-        callbackUrls
+        callbackUrls,
+        flows: {
+          authorizationCodeGrant: true,
+        }
       },
     })
 
