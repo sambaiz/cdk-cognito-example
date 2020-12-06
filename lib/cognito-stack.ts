@@ -1,6 +1,8 @@
+import * as path from 'path'
 import * as cdk from '@aws-cdk/core';
-import { UserPool, UserPoolIdentityProviderGoogle, UserPoolClientIdentityProvider, UserPoolClient } from '@aws-cdk/aws-cognito'
+import { UserPool, UserPoolIdentityProviderGoogle, UserPoolClientIdentityProvider, UserPoolClient, ProviderAttribute } from '@aws-cdk/aws-cognito'
 import { Secret } from '@aws-cdk/aws-secretsmanager';
+import { Function, Runtime, Code } from '@aws-cdk/aws-lambda'
 
 interface Props extends cdk.StackProps {
   userPoolName: string
@@ -8,24 +10,47 @@ interface Props extends cdk.StackProps {
   googleOauthClientSecretName: string
   clientName: string
   callbackUrls: string[]
+  signUpAllowEmails: string[]
 }
 
 export class CognitoStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props: Props) {
     super(scope, id, props)
 
-    const userPool = this.createUserPool(props.userPoolName, props.domainPrefix)
-    this.createIdentityProviderGoogle(userPool, props.googleOauthClientSecretName)
+    const userPool = this.createUserPool(props.userPoolName, props.domainPrefix, props.signUpAllowEmails)
+    const googleIdP = this.createIdentityProviderGoogle(userPool, props.googleOauthClientSecretName)
     const client = this.createUserPoolClient(userPool, props.clientName, props.callbackUrls)
+    client.node.addDependency(googleIdP)
 
     new cdk.CfnOutput(this, 'AuthorizeURLOutput', {
       value: `https://${props.domainPrefix}.auth.${this.region}.amazoncognito.com/authorize?client_id=${client.userPoolClientId}&redirect_uri=${encodeURIComponent(props.callbackUrls[0])}&response_type=code&identity_provider=Google`,
     })
   }
 
-  private createUserPool(userPoolName: string, domainPrefix: string): UserPool {
+  private createUserPool(userPoolName: string, domainPrefix: string, signUpAllowEmails: string[]): UserPool {
     const userPool = new UserPool(this, 'UserPool', {
-      userPoolName
+      userPoolName,
+      standardAttributes: {
+        email: {
+          required: true,
+          mutable: true
+        },
+        fullname: {
+          required: true,
+          mutable: true
+        },
+      },
+      signInAliases: { email: true },
+      lambdaTriggers: {
+        preSignUp: new Function(this, 'PreSignUpFunction', {
+          runtime: Runtime.GO_1_X,
+          code: Code.fromAsset(path.join(__dirname, 'userPoolTrigger')),
+          handler: "preSignUp.main",
+          environment: {
+            ALLOW_EMAILS: signUpAllowEmails.join(",")
+          }
+        })
+      },
     })
     userPool.addDomain("UserPoolDomain", {
       cognitoDomain: {
@@ -46,13 +71,17 @@ export class CognitoStack extends cdk.Stack {
     return userPool
   }
 
-  private createIdentityProviderGoogle(userPool: UserPool, secretName: string) {
+  private createIdentityProviderGoogle(userPool: UserPool, secretName: string): UserPoolIdentityProviderGoogle {
     const oauthClientSecret = Secret.fromSecretNameV2(this, "GoogleOAuthClientSecret", secretName)
-    new UserPoolIdentityProviderGoogle(this, "UserPoolIdentityProviderGoogle", {
+    return new UserPoolIdentityProviderGoogle(this, "UserPoolIdentityProviderGoogle", {
       userPool,
       clientId: oauthClientSecret.secretValueFromJson('client_id').toString(),
       clientSecret: oauthClientSecret.secretValueFromJson('client_secret').toString(),
       scopes: ["profile", "email"],
+      attributeMapping: {
+        email: ProviderAttribute.GOOGLE_EMAIL,
+        fullname: ProviderAttribute.GOOGLE_NAME,
+      }
     })
   }
 

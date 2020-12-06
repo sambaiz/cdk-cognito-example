@@ -7,7 +7,8 @@ const app = new cdk.App();
 new CognitoStack(app, 'CognitoTestStack', {
     userPoolName: "cdk-cognito-google-test", 
     domainPrefix: "sambaiz-google-auth-test",
-    googleOauthClientSecretName: "cdk-cognito-google-test-client-id",
+    googleOauthClientSecretName: "cdk-cognito-google-test-client-id2",
     clientName: "cdk-cognito-google-test-client-id",
-    callbackUrls: ["https://example.com"]
+    callbackUrls: ["https://example.com"],
+    signUpAllowEmails: ["godgourd@gmail.com"]
 });
