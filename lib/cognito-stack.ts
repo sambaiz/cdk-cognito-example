@@ -89,9 +89,10 @@ export class CognitoStack extends cdk.Stack {
     const userPoolClient = userPool.addClient("UserPoolClient", {
       userPoolClientName,
       supportedIdentityProviders: [UserPoolClientIdentityProvider.GOOGLE],
+      generateSecret: true,
       oAuth: {
         callbackUrls
-      }
+      },
     })
 
     new cdk.CfnOutput(this, `UserPoolClientIdOutput`, {
