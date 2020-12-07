@@ -77,7 +77,7 @@ export class CognitoStack extends cdk.Stack {
       userPool,
       clientId: oauthClientSecret.secretValueFromJson('client_id').toString(),
       clientSecret: oauthClientSecret.secretValueFromJson('client_secret').toString(),
-      scopes: ["profile", "email"],
+      scopes: ["profile", "email", "openid"],
       attributeMapping: {
         email: ProviderAttribute.GOOGLE_EMAIL,
         fullname: ProviderAttribute.GOOGLE_NAME,
