@@ -5,7 +5,7 @@
     "cdk-cognito-google": "bin/cdk-cognito-example.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc; cd lib/userPoolTrigger && GOARCH=amd64 GOOS=linux go build *.go",
     "watch": "tsc -w",
     "cdk": "cdk"
   },

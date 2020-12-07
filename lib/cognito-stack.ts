@@ -45,7 +45,7 @@ export class CognitoStack extends cdk.Stack {
         preSignUp: new Function(this, 'PreSignUpFunction', {
           runtime: Runtime.GO_1_X,
           code: Code.fromAsset(path.join(__dirname, 'userPoolTrigger')),
-          handler: "preSignUp.main",
+          handler: "preSignUp",
           environment: {
             ALLOW_EMAILS: signUpAllowEmails.join(",")
           }

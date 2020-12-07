@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-var whiteList = map[string]interface{}
+var whiteList = map[string]interface{}{}
 
 // handler is the lambda handler invoked by the `lambda.Start` function call
 func handler(event events.CognitoEventUserPoolsPreSignup) (events.CognitoEventUserPoolsPreSignup, error) {
