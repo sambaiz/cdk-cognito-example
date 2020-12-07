@@ -40,7 +40,7 @@ export class CognitoStack extends cdk.Stack {
           mutable: true
         },
       },
-      signInAliases: { email: true },
+      signInAliases: { username: true, email: true },
       lambdaTriggers: {
         preSignUp: new Function(this, 'PreSignUpFunction', {
           runtime: Runtime.GO_1_X,
@@ -58,7 +58,7 @@ export class CognitoStack extends cdk.Stack {
         // Authorized JavaScript origins: https://{domainPrefix}.auth.{region}.amazoncognito.com
         // Redirect URI: https://{domainPrefix}.auth.{region}.amazoncognito.com/oauth2/idpresponse
         // at https://console.developers.google.com/apis/credentials and put client_secret.json on SecretsManager
-        domainPrefix: "sambaiz-google-auth-test",
+        domainPrefix: domainPrefix,
       }
     })
 
